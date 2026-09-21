@@ -8,7 +8,7 @@ code_block = shell = hbar = None  # injected by build.py
 
 HERO = """
 <header class="hero">
-  <h1>BDAL lab viva — theory, commands, drills</h1>
+  <h1>BDAL lab viva: theory, commands, drills</h1>
   <p>Short answers for the theory questions, every command you may be asked to type, and drills to practise them.
   Project facts at the end.</p>
   <div class="chips">
@@ -73,8 +73,8 @@ def s_theory():
         ["<b>JobHistoryServer</b>", "keeps logs and counters of finished jobs (port 19888)", "the RM forgets jobs once they finish"],
         ["<b>Pig</b>", "high-level dataflow language (Pig Latin) compiled into MapReduce jobs", "ten lines instead of several Java classes"],
     ]) + svg(860, 300, "".join([
-        '<text x="200" y="20" text-anchor="middle" class="t-b">HDFS — storage</text>',
-        '<text x="640" y="20" text-anchor="middle" class="t-b">YARN — compute</text>',
+        '<text x="200" y="20" text-anchor="middle" class="t-b">HDFS: storage</text>',
+        '<text x="640" y="20" text-anchor="middle" class="t-b">YARN: compute</text>',
         box(20, 35, 360, 62, "bxa", ["NameNode", "metadata: blocks and where they are · UI 9870"]),
         box(20, 110, 175, 62, "bxa", ["DataNode", "stores blocks"]),
         box(205, 110, 175, 62, "bx", ["SecondaryNameNode", "checkpoints · 9868"]),
@@ -117,8 +117,8 @@ def s_theory():
 <li>Modes: <code>pig -x local</code> (local files, one JVM) · <code>pig -x mapreduce</code> (HDFS + YARN, what we used)</li>
 </ul>
 <div class="box say"><b>MapReduce vs Pig, one line</b>Same engine underneath. MapReduce gives control (combiner,
-custom Writable, number of reducers); Pig gives speed of writing — a grouped top-N is one word (<code>ALL</code>
-→ <code>BY x</code>) instead of a secondary-sort job.</div>
+custom Writable, number of reducers). Pig is faster to write: a grouped top-N is one word (<code>ALL</code>
+becomes <code>BY x</code>) instead of a secondary-sort job.</div>
 """
 
 
@@ -164,7 +164,7 @@ def s_cheat():
         ["Run locally (no HDFS)", "<code>pig -x local -f script.pig</code>"],
         ["Interactive shell", "<code>pig</code> → Grunt; leave with <code>quit;</code>"],
         ["Inside Grunt", "<code>DUMP rel;</code> print · <code>DESCRIBE rel;</code> schema · <code>EXPLAIN rel;</code> plans · <code>ILLUSTRATE rel;</code> sample"],
-        ["See Pig output", "<code>hadoop fs -cat 'Top10Dots.txt/part-*'</code> — quote the glob"],
+        ["See Pig output", "<code>hadoop fs -cat 'Top10Dots.txt/part-*'</code> (quote the glob)"],
         ["Version", "<code>pig -version</code>"],
     ]) + """
 <h3>YARN</h3>
@@ -212,7 +212,7 @@ def s_project():
     ]) + """
 <h3>The three MapReduce jobs</h3>
 """ + table(["Job", "What it does", "Pattern", "Result"], [
-        ["<b>MR1 TopTotal</b>", "highest TotalKg ever", "each mapper keeps its split's max in a field and emits it in <code>cleanup()</code> under key \"TOP\"; 1 reducer picks the biggest of 7", "1407.5 kg — Dave Hoff, Multi-ply, 2019-10-28"],
+        ["<b>MR1 TopTotal</b>", "highest TotalKg ever", "each mapper keeps its split's max in a field and emits it in <code>cleanup()</code> under key \"TOP\"; 1 reducer picks the biggest of 7", "1407.5 kg, Dave Hoff, Multi-ply, 2019-10-28"],
         ["<b>MR2 Summarization</b>", "min/max/count/avg TotalKg per equipment", "custom <code>Writable</code> holding min, max, <b>sum and count</b> + a combiner; average computed only at the end", "Wraps highest avg 513.71 · Raw largest 1,845,444"],
         ["<b>MR3 Federation</b>", "entries per federation", "word count: mapper emits (federation, 1); the reducer is also the combiner", "THSPA 535,620 · USAPL 365,199 · THSWPA 325,029"],
     ]) + """
@@ -224,10 +224,10 @@ def s_project():
         ["top10Dots", "10 best Dots", "<code>GROUP lifts ALL</code>", "818.06 Deana Tollefson"],
         ["top10DotsBySex", "top 10 Dots per sex", "<code>GROUP lifts BY sex</code>", "F 818.06 · M 783.48 · Mx 407.79"],
     ]) + """
-<div class="box say"><b>Three answers worth memorising</b>Why sum and count, not the average: averages cannot be
-merged. Why the MR3 reducer can be the combiner: addition is associative and commutative and the types match.
-Why the mapper's max is emitted in <code>cleanup()</code>: only then is the whole split seen, and it cuts the
-shuffle from 4 million records to 7.</div>
+<div class="box say"><b>Three answers they ask for</b>Sum and count instead of the average, because averages
+cannot be merged. The MR3 reducer doubles as the combiner, because addition is associative and commutative and
+its input and output types match. MR1 emits in <code>cleanup()</code>, because the split maximum is known only
+at the end, and that sends 7 records through the shuffle instead of 4 million.</div>
 """
 
 
@@ -251,14 +251,14 @@ QA = [
     ("mapreduce", "What is a Writable?", "Hadoop's compact binary serialization interface (write / readFields). Keys additionally implement WritableComparable so they can be sorted."),
     ("pig", "What is Pig and why use it?", "A dataflow platform: scripts in Pig Latin are compiled into MapReduce jobs, so a question takes about ten lines instead of several Java classes."),
     ("pig", "GROUP ALL vs GROUP BY?", "ALL puts every row in one group for a global answer; BY x makes one group per value, giving a per-category answer."),
-    ("pig", "When does a Pig script actually run?", "Only at STORE or DUMP — Pig is lazy and builds a plan first."),
+    ("pig", "When does a Pig script run?", "Only at STORE or DUMP. Pig is lazy: the statements before that build a plan."),
     ("pig", "Why cast a field to double before ORDER?", "Without a schema a field is a bytearray and sorts as text, so \"999\" would rank above \"1000\"."),
     ("commands", "How do you copy a local file into HDFS and check it?", "hadoop fs -copyFromLocal file.txt /dir1 (or -put), then hadoop fs -ls /dir1 and hadoop fs -cat /dir1/file.txt."),
     ("commands", "How do you get a file out of HDFS?", "hadoop fs -copyToLocal /dir1/file.txt downloaded/ (or -get)."),
     ("commands", "Difference between -rm, -rmdir and -rm -r?", "-rm deletes a file, -rmdir only an empty directory, -rm -r a directory with everything inside."),
     ("commands", "How do you run a MapReduce job from source?", "javac -cp \"$(hadoop classpath)\" -d build src/…/*.java, jar cf X.jar -C build ., then hadoop jar X.jar <MainClass> <input> <output>."),
     ("commands", "How do you run a Pig script on the cluster and see its output?", "pig -x mapreduce -f script.pig, then hadoop fs -cat 'Output.txt/part-*'."),
-    ("commands", "How do you show that a file is split into blocks?", "hdfs fsck /powerlifting/openpowerlifting.csv -files -blocks — ours reports 7 blocks, six of 134,217,728 bytes and one of 18,313,029."),
+    ("commands", "How do you show that a file is split into blocks?", "hdfs fsck /powerlifting/openpowerlifting.csv -files -blocks. Ours reports 7 blocks: six of 134,217,728 bytes and one of 18,313,029."),
     ("project", "Why did you keep sum and count instead of the average in MR2?", "Averages cannot be merged when groups differ in size; sums and counts add exactly, which also makes a combiner safe."),
     ("project", "Why can MR3's reducer also be the combiner?", "Summing is associative and commutative, and its input and output types are both (Text, LongWritable)."),
     ("project", "Why does MR1 write in cleanup()?", "The split's maximum is only known after the last record, and emitting once per split sends 7 records instead of 4 million."),
@@ -281,9 +281,9 @@ MCQ = [
     {"q": "The default partitioner sends a key to a reducer by:", "o": ["round robin", "hash(key) mod number of reducers", "key length", "input order"], "a": 1, "why": "HashPartitioner."},
     {"q": "With TextInputFormat, the mapper's input key is:", "o": ["the line number", "the byte offset of the line", "the file name", "the first field"], "a": 1, "why": "LongWritable offset, Text value."},
     {"q": "Running a job whose output directory exists gives:", "o": ["overwrite", "append", "FileAlreadyExistsException", "a new folder"], "a": 2, "why": "Delete it with hadoop fs -rm -r first."},
-    {"q": "hadoop fs -rmdir fails on a directory that:", "o": ["is empty", "is not empty", "has one file", "was just created"], "a": 1, "why": "\"Directory is not empty\" — use -rm -r."},
+    {"q": "hadoop fs -rmdir fails on a directory that:", "o": ["is empty", "is not empty", "has one file", "was created today"], "a": 1, "why": "It prints \"Directory is not empty\". Use -rm -r."},
     {"q": "put is the same as:", "o": ["get", "copyToLocal", "copyFromLocal", "moveToLocal"], "a": 2, "why": "get = copyToLocal, put = copyFromLocal."},
-    {"q": "A Pig script actually executes at:", "o": ["LOAD", "FILTER", "GROUP", "STORE or DUMP"], "a": 3, "why": "Pig is lazy."},
+    {"q": "A Pig script executes at:", "o": ["LOAD", "FILTER", "GROUP", "STORE or DUMP"], "a": 3, "why": "Pig is lazy."},
     {"q": "GROUP lifts ALL gives:", "o": ["one group per row", "one group with every row", "an error", "a sorted relation"], "a": 1, "why": "Used for a global top-N."},
     {"q": "Which port is the YARN web UI?", "o": ["9870", "8088", "9000", "19888"], "a": 1, "why": "9870 NameNode, 19888 JobHistory, 9000 HDFS RPC."},
     {"q": "How many map tasks did each of our jobs run?", "o": ["1", "3", "7", "42"], "a": 2, "why": "One per input split, and the CSV is 7 blocks."},
